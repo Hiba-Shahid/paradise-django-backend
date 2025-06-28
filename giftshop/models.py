@@ -79,8 +79,6 @@ class Transaction(models.Model):
         ('site_credit', 'Site Credit'),
         ('paypal', 'PayPal'),
     ]
-
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='transactions')
     order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
     competition = models.ForeignKey('competition.Competition', on_delete=models.SET_NULL, null=True, blank=True)
     transaction_id = models.CharField(max_length=100, null=True, blank=True)

@@ -16,3 +16,19 @@ class LoginSerializer(serializers.Serializer):
             return attrs
 
         raise serializers.ValidationError("Invalid credentials")
+    
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email'),
+            password=validated_data['password'],
+        )
+        return user

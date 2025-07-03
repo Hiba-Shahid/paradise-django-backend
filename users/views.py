@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 from django.core.mail import send_mail
-from main.models import UserProfile
+from users.models import UserProfile
 from .serializers import LoginSerializer, UserRegisterSerializer
 
 class LoginView(APIView):

@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(
         User,
@@ -43,3 +44,27 @@ class AffiliateCommission(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     related_order = models.ForeignKey('Order', on_delete=models.CASCADE)
+
+class Wallet(models.Model):
+    user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPE_CHOICES = [
+        ('credit', 'Credit'),
+        ('debit', 'Debit'),
+        ('withdrawal', 'Withdrawal'),
+        ('commission', 'Commission'),
+        ('reward', 'Reward'),
+    ]
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    related_order = models.ForeignKey('giftshop.Order', null=True, blank=True, on_delete=models.SET_NULL)
+
+class Setting(models.Model):
+    key = models.CharField(max_length=100, unique=True)
+    value = models.TextField()

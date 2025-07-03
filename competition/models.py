@@ -1,4 +1,4 @@
-from main.models import UserProfile
+from users.models import UserProfile
 from django.db import models
 
 class Prize(models.Model):
@@ -57,51 +57,58 @@ class Ticket(models.Model):
 
     class Meta:
         unique_together = ('competition', 'ticket_number')
+
+class InstantWinPrize(models.Model):
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
+    prize_name = models.CharField(max_length=255)
+    ticket_number = models.CharField(max_length=10)  
+    is_claimed = models.BooleanField(default=False)
+    claimed_by = models.ForeignKey(UserProfile, null=True, blank=True, on_delete=models.SET_NULL)
+    claimed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('competition', 'ticket_number')
+
+    def __str__(self):
+        return f"{self.prize_name} for ticket {self.ticket_number}"
     
 
 class Winner(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='wins')
-    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='winners')
-    prize = models.CharField(max_length=255)
-    win_date = models.DateTimeField(auto_now_add=True)
-    prize_status = models.CharField(max_length=20, choices=[
-        ('pending', 'Pending'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-    ], default='pending')
-
-    def __str__(self):
-        return f"{self.user.username} won {self.prize} in {self.competition.name}"
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE)
+    prize = models.ForeignKey(Prize, on_delete=models.CASCADE)
+    winner_picture = models.ImageField(upload_to='winners/', null=True, blank=True)
+    winner_video = models.FileField(upload_to='winners/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
-class Payment(models.Model):
-    PAYMENT_METHODS = [
-        ('card', 'Card'),
-        ('wallet', 'Wallet'),
-        ('site_credit', 'Site Credit'),
-        ('paypal', 'PayPal'),
-    ]
+# class Payment(models.Model):
+#     PAYMENT_METHODS = [
+#         ('card', 'Card'),
+#         ('wallet', 'Wallet'),
+#         ('site_credit', 'Site Credit'),
+#         ('paypal', 'PayPal'),
+#     ]
 
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
-    ]
+#     STATUS_CHOICES = [
+#         ('pending', 'Pending'),
+#         ('completed', 'Completed'),
+#         ('failed', 'Failed'),
+#         ('refunded', 'Refunded'),
+#     ]
 
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='payments')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    competition = models.ForeignKey(
-        Competition, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='payments'
-    )
-    transaction_id = models.CharField(max_length=100, null=True, blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
+#     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='payments')
+#     amount = models.DecimalField(max_digits=10, decimal_places=2)
+#     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
+#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+#     competition = models.ForeignKey(
+#         Competition, on_delete=models.SET_NULL, null=True, blank=True,
+#         related_name='payments'
+#     )
+#     transaction_id = models.CharField(max_length=100, null=True, blank=True)
+#     timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.user.user.username} - {self.amount} via {self.payment_method}"
+#     def __str__(self):
+#         return f"{self.user.user.username} - {self.amount} via {self.payment_method}"
     
 class JournalEntry(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Competition, Ticket,  Winner, Payment
-from main.models import UserProfile
+from .models import Competition, Ticket,  Winner
+from users.models import UserProfile
 
 class CompetitionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,10 +24,3 @@ class WinnerSerializer(serializers.ModelSerializer):
         model = Winner
         fields = ['id', 'user', 'competition', 'prize', 'win_date', 'prize_status']
 
-class PaymentSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(slug_field='user__username', queryset=UserProfile.objects.all())
-    competition = serializers.SlugRelatedField(slug_field='title', queryset=Competition.objects.all())
-
-    class Meta:
-        model = Payment
-        fields = ['id', 'user', 'competition', 'amount', 'payment_method', 'status', 'transaction_id', 'timestamp']

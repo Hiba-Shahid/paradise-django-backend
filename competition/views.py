@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Competition, Ticket,  Winner,  Payment
-from .serializers import CompetitionSerializer, TicketSerializer,  WinnerSerializer, PaymentSerializer
+from .models import Competition, Ticket,  Winner
+from .serializers import CompetitionSerializer, TicketSerializer,  WinnerSerializer
 
 class CompetitionViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
@@ -15,7 +15,3 @@ class WinnerViewSet(viewsets.ModelViewSet):
     queryset = Winner.objects.all()
     serializer_class = WinnerSerializer
 
-
-class PaymentViewSet(viewsets.ModelViewSet):
-    queryset = Payment.objects.all()
-    serializer_class = PaymentSerializer

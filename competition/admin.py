@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Competition, Ticket, Winner, Payment
+from .models import Competition, Ticket, Winner
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
@@ -17,8 +17,4 @@ class WinnerAdmin(admin.ModelAdmin):
     list_display = ('user', 'competition', 'prize', 'win_date', 'prize_status')
     list_filter = ('prize_status',)
 
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'competition', 'amount', 'payment_method', 'status', 'timestamp')
-    list_filter = ('payment_method', 'status')
-    search_fields = ('user__user__username', 'transaction_id')
+

@@ -4,6 +4,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from django.core.mail import send_mail
 from main.models import UserProfile
 from .serializers import LoginSerializer, UserRegisterSerializer
 
@@ -53,6 +54,16 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()  
+
+            send_mail(
+                'Welcome to Our Platform!',
+                'Thank you for registering. You can now log in.',
+                'hibashahid678@gmail.com',  # Replace with your actual email
+                [user.email],  # User ka email
+                fail_silently=False,
+            )
+
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

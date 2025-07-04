@@ -1,14 +1,11 @@
 from rest_framework import viewsets
-from .models import Product,  Collection, Cart,  CartItem, Order, OrderItem, Transaction
-from .serializers import ProductSerializer,  CollectionSerializer, CartSerializer,  CartItemSerializer, OrderSerializer, OrderItemSerializer, TransactionSerializer
+from .models import Product,  Cart,  CartItem, Order, OrderItem, Transaction
+from .serializers import ProductSerializer,  CartSerializer,  CartItemSerializer, OrderSerializer, OrderItemSerializer, TransactionSerializer
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-class CollectionViewSet(viewsets.ModelViewSet):
-    queryset = Collection.objects.all()
-    serializer_class = CollectionSerializer
 
 class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all()

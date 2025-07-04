@@ -33,6 +33,8 @@ INSTALLED_APPS = [
     'users',
     'competition',
     'giftshop',
+    'messaging',
+    'core',
 ]
 
 REST_FRAMEWORK = {

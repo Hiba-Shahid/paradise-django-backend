@@ -7,6 +7,11 @@ class Newsletter(models.Model):
     body = models.TextField()
     sent_at = models.DateTimeField(null=True, blank=True)
 
+class NewsletterSubscription(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+    unsubscribed_at = models.DateTimeField(null=True, blank=True)
+
 class AutoReply(models.Model):
     trigger = models.CharField(max_length=50)
     subject = models.CharField(max_length=255)

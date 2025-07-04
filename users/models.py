@@ -25,6 +25,8 @@ class UserProfile(models.Model):
     linked_affiliate = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='leads')
     affiliate_joined_on = models.DateTimeField(null=True, blank=True)
     consent_to_marketing = models.BooleanField(default=False)
+    receive_whatsapp = models.BooleanField(default=False)
+    receive_email = models.BooleanField(default=True)
 
 
     def __str__(self):
@@ -65,6 +67,30 @@ class WalletTransaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     related_order = models.ForeignKey('giftshop.Order', null=True, blank=True, on_delete=models.SET_NULL)
 
-class Setting(models.Model):
-    key = models.CharField(max_length=100, unique=True)
-    value = models.TextField()
+
+class OTPVerification(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    code = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    purpose = models.CharField(max_length=50, default='registration') 
+
+class NewsletterSubscription(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+    unsubscribed_at = models.DateTimeField(null=True, blank=True)
+
+
+class LoginHistory(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+class PasswordResetRequest(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    token = models.CharField(max_length=100)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()

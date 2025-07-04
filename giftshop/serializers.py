@@ -1,18 +1,11 @@
 from rest_framework import serializers
-from .models import Product, Collection, Product, Cart, CartItem,  Order, OrderItem, Transaction
+from .models import Product, Product, Cart, CartItem,  Order, OrderItem, Transaction
 from users.models import UserProfile
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'name', 'description', 'price', 'stock', 'image', 'is_active']
-
-class CollectionSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Collection
-        fields = ['id', 'name', 'description', 'image', 'is_active', 'created_at', 'products']
 
 class CartSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='user__username', queryset=UserProfile.objects.all())

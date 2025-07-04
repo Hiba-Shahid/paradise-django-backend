@@ -19,6 +19,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     is_active = models.BooleanField(default=True)
     category = models.ForeignKey(ProductCategory, null=True, blank=True, on_delete=models.SET_NULL)
+    is_featured_homepage = models.BooleanField(default=False)
 
 class Cart(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
@@ -28,19 +29,10 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL)
-    competition = models.ForeignKey(Competition, null=True, blank=True, on_delete=models.SET_NULL)
-    ticket_quantity = models.PositiveIntegerField(default=1)
-    quantity = models.PositiveIntegerField(default=1) 
-
-    def is_ticket(self):
-        return self.competition is not None
-
-    def __str__(self):
-        if self.product:
-            return f"{self.quantity} x {self.product.name}"
-        elif self.competition:
-            return f"{self.ticket_quantity} ticket(s) for {self.competition.title}"
-        return "Invalid cart item"
+    ticket = models.ForeignKey(Ticket, null=True, blank=True, on_delete=models.SET_NULL)
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
 
 class Order(models.Model):
@@ -50,6 +42,7 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=50)
     competition = models.ForeignKey(Competition, null=True, blank=True, on_delete=models.SET_NULL)
     rc_code_used = models.CharField(max_length=20, null=True, blank=True)
+    unique_sale_code = models.CharField(max_length=20, unique=True)
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

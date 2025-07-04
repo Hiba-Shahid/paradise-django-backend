@@ -5,6 +5,7 @@ from competition.models import Competition, Ticket
 class ProductCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -20,10 +21,19 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
     category = models.ForeignKey(ProductCategory, null=True, blank=True, on_delete=models.SET_NULL)
     is_featured_homepage = models.BooleanField(default=False)
+    is_general_ecard = models.BooleanField(default=False)  
+    competition_link = models.URLField(null=True, blank=True)
+
+    
+    def __str__(self):
+        return self.name
 
 class Cart(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cart of {self.user_profile}"
 
 
 class CartItem(models.Model):
@@ -33,6 +43,10 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    
+    def __str__(self):
+        return f"Item in {self.cart}"
 
 
 class Order(models.Model):
@@ -44,11 +58,18 @@ class Order(models.Model):
     rc_code_used = models.CharField(max_length=20, null=True, blank=True)
     unique_sale_code = models.CharField(max_length=20, unique=True)
 
+    
+    def __str__(self):
+        return f"Order #{self.unique_sale_code} by {self.user_profile}"
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL)
     ticket = models.ForeignKey(Ticket, null=True, blank=True, on_delete=models.SET_NULL)
     price = models.DecimalField(max_digits=8, decimal_places=2)
+
+    def __str__(self):
+        return f"Item in Order #{self.order.unique_sale_code}"
 
 class Transaction(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -62,12 +83,19 @@ class Transaction(models.Model):
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     retry_attempts = models.PositiveIntegerField(default=0)
 
+    def __str__(self):
+        return f"Transaction {self.gateway_reference} for Order #{self.order.unique_sale_code}"
+
+
 
 class Invoice(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE)
     invoice_number = models.CharField(max_length=20, unique=True)
     pdf_file = models.FileField(upload_to='invoices/')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invoice #{self.invoice_number}"
 
 
 

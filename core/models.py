@@ -12,6 +12,36 @@ class StaticPage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class Page(models.Model):
+    SLUG_CHOICES = [
+        ('how-to-play', 'How to Play'),
+        ('privacy-policy', 'Privacy Policy'),
+        ('terms-and-conditions', 'Terms and Conditions'),
+        ('faq', 'FAQ'),  
+    ]
+
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=100, unique=True, choices=SLUG_CHOICES)
+    content = models.TextField()
+    is_active = models.BooleanField(default=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+    
+class FAQ(models.Model):
+    question = models.CharField(max_length=500)
+    answer = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.question
+
+
 class SocialLink(models.Model):
     platform = models.CharField(max_length=50)
     url = models.URLField()

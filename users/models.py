@@ -21,7 +21,7 @@ class UserProfile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_affiliate = models.BooleanField(default=False)
     is_staff_member = models.BooleanField(default=False)
-    rc_code = models.CharField(max_length=20, blank=True, null=True)  
+    rc_code = models.CharField(max_length=20, blank=True, null=True,  unique=True)  
     linked_affiliate = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='leads')
     affiliate_joined_on = models.DateTimeField(null=True, blank=True)
     consent_to_marketing = models.BooleanField(default=False)
@@ -34,18 +34,43 @@ class UserProfile(models.Model):
 
 
 class AffiliateProfile(models.Model):
-    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    total_earnings = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    can_withdraw = models.BooleanField(default=False)
-    withdraw_limit_reached = models.BooleanField(default=False)
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='affiliate')
+    total_earnings = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     last_withdraw_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Affiliate: {self.user.user.username}"
+
+    def can_withdraw(self):
+        return self.user.leads.count() >= 5 and self.total_earnings >= 25.0
+
+
+class AffiliateWithdrawal(models.Model):
+    affiliate = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ], default='pending')
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.affiliate.user.username} withdrawal - {self.amount} ({self.status})"
+
 
 class AffiliateCommission(models.Model):
     affiliate = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    lead = models.ForeignKey(User, related_name='commission_source', on_delete=models.CASCADE)
+    lead = models.ForeignKey(UserProfile, related_name='commission_source', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     related_order = models.ForeignKey('Order', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.affiliate.user.username} earned {self.amount} from {self.lead_user.username}"
+
 
 class Wallet(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)

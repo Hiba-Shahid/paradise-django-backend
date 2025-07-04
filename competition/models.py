@@ -39,10 +39,12 @@ class Competition(models.Model):
     trustpilot_link = models.URLField(null=True, blank=True)
     facebook_like_link = models.URLField(null=True, blank=True)
     facebook_community_link = models.URLField(null=True, blank=True)
-    extension_count = models.PositiveIntegerField(default=0)
     max_extensions_allowed = models.PositiveIntegerField(default=4)
     promo_video_url = models.URLField(null=True, blank=True)
     promo_image = models.ImageField(upload_to='competitions/promos/', null=True, blank=True)
+    ticket_letter_limit = models.PositiveSmallIntegerField(default=26)  # 1-26 (A-Z)
+    ticket_number_limit = models.PositiveSmallIntegerField(default=1000)  # 100, 200,...1000
+    ticket_purchase_limit_per_user = models.PositiveIntegerField(default=7)
 
 
     def extend_closing_date(self):
@@ -86,6 +88,23 @@ class ECard(models.Model):
     code = models.CharField(max_length=10, unique=True)
     video = models.FileField(upload_to='ecards/')
     is_active = models.BooleanField(default=True)
+    is_used = models.BooleanField(default=False)  
+
+
+
+class TicketLock(models.Model):
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
+    letter = models.CharField(max_length=1)  # A-Z
+    number = models.PositiveIntegerField()
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    locked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('competition', 'letter', 'number')
+
+    def is_expired(self):
+        return timezone.now() > self.locked_at + timedelta(minutes=10)
+
 
 class Ticket(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
@@ -130,38 +149,15 @@ class TopAllTimeWinner(models.Model):
     class Meta:
         ordering = ['display_order']
 
-
-# class Payment(models.Model):
-#     PAYMENT_METHODS = [
-#         ('card', 'Card'),
-#         ('wallet', 'Wallet'),
-#         ('site_credit', 'Site Credit'),
-#         ('paypal', 'PayPal'),
-#     ]
-
-#     STATUS_CHOICES = [
-#         ('pending', 'Pending'),
-#         ('completed', 'Completed'),
-#         ('failed', 'Failed'),
-#         ('refunded', 'Refunded'),
-#     ]
-
-#     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='payments')
-#     amount = models.DecimalField(max_digits=10, decimal_places=2)
-#     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
-#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-#     competition = models.ForeignKey(
-#         Competition, on_delete=models.SET_NULL, null=True, blank=True,
-#         related_name='payments'
-#     )
-#     transaction_id = models.CharField(max_length=100, null=True, blank=True)
-#     timestamp = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.user.user.username} - {self.amount} via {self.payment_method}"
     
 class JournalEntry(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
+
+class LiveDraw(models.Model):
+    competitions = models.ManyToManyField(Competition)
+    video_url = models.URLField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)

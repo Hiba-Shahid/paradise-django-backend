@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'giftshop',
     'messaging',
     'core',
+    'adminpanel',
 ]
 
 REST_FRAMEWORK = {

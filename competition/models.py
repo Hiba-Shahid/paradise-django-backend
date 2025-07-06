@@ -14,6 +14,9 @@ class CompetitionGroup(models.Model):
     title = models.CharField(max_length=255)
     is_coupon_competition = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.title
+
 class Competition(models.Model):
     STATUS_CHOICES = [('prepared', 'Prepared'), ('active', 'Active'), ('past', 'Past')]
 
@@ -42,9 +45,25 @@ class Competition(models.Model):
     max_extensions_allowed = models.PositiveIntegerField(default=4)
     promo_video_url = models.URLField(null=True, blank=True)
     promo_image = models.ImageField(upload_to='competitions/promos/', null=True, blank=True)
-    ticket_letter_limit = models.PositiveSmallIntegerField(default=26)  # 1-26 (A-Z)
-    ticket_number_limit = models.PositiveSmallIntegerField(default=1000)  # 100, 200,...1000
+    ticket_letter_limit = models.PositiveSmallIntegerField(default=26)  
+    ticket_number_limit = models.PositiveSmallIntegerField(default=1000)  
     ticket_purchase_limit_per_user = models.PositiveIntegerField(default=7)
+    is_coupon_competition = models.BooleanField(default=False)
+    is_discounted_now = models.BooleanField(default=False)
+    is_published = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
+    is_discounted = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-live_draw_date']
+
+    def save(self, *args, **kwargs):
+        if not self.unique_code:
+            today_str = timezone.now().strftime("%y%m%d")
+            self.unique_code = f"{today_str}01"
+        self.sold_out = self.entries_left == 0
+        super().save(*args, **kwargs)
 
 
     def extend_closing_date(self):
@@ -56,8 +75,6 @@ class Competition(models.Model):
     def __str__(self):
         return self.title
 
-    def tickets_sold(self):
-        return self.max_entries - self.entries_left
 
     @property
     def total_past_winners(self):
@@ -68,20 +85,57 @@ class Competition(models.Model):
     def total_prize_value(self):
         from .models import Winner
         return sum([winner.prize.value for winner in Winner.objects.filter(ticket__competition=self)])
+    
+class CompetitionPrize(models.Model):
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name='prizes')
+    prize_position = models.PositiveSmallIntegerField()  
+    ticket_number = models.CharField(max_length=10)
+    prize_value = models.DecimalField(max_digits=10, decimal_places=2)
 
-class CouponCode(models.Model):
+    def __str__(self):
+        return f"{self.competition.title} - {self.prize_position} Prize"
+    
+    @classmethod
+    def get_all_time_prize_value(cls):
+        return sum(cls.objects.values_list('prize_value', flat=True))
+
+class CompetitionCopyHistory(models.Model):
+    original_competition = models.ForeignKey('Competition', related_name='copy_sources', on_delete=models.CASCADE)
+    new_competition = models.ForeignKey('Competition', related_name='copied_versions', on_delete=models.CASCADE)
+    copied_by = models.ForeignKey('users.UserProfile', on_delete=models.SET_NULL, null=True)
+    inserted_position = models.PositiveIntegerField(null=True, blank=True)  # e.g., after competition #5
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Copied {self.original_competition.title} → {self.new_competition.title}"
+
+class CompetitionEditLog(models.Model):
+    competition = models.ForeignKey('Competition', on_delete=models.CASCADE)
+    edited_by = models.ForeignKey('users.UserProfile', on_delete=models.SET_NULL, null=True)
+    field_changed = models.CharField(max_length=255)
+    old_value = models.TextField(null=True, blank=True)
+    new_value = models.TextField(null=True, blank=True)
+    edited_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Edit on {self.competition.title} - {self.field_changed}"
+
+
+class DiscountCoupon(models.Model):
     code = models.CharField(max_length=50, unique=True)
-    competition_group = models.ForeignKey(CompetitionGroup, on_delete=models.CASCADE)
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    is_affiliate_rc = models.BooleanField(default=False)
+    competition_group = models.ForeignKey(
+        CompetitionGroup, null=True, blank=True, on_delete=models.SET_NULL
+    )
     active = models.BooleanField(default=True)
     expires_at = models.DateTimeField(null=True, blank=True)
 
     def is_valid(self):
-        now = timezone.now()
-        return self.active and (self.expires_at is None or self.expires_at > now)
+        return self.active and (not self.expires_at or timezone.now() < self.expires_at)
 
     def __str__(self):
-        return f"{self.code} - {self.discount_percentage}%"
+        return f"{self.code} ({self.percentage}%) {'[RC]' if self.is_affiliate_rc else ''}"
 
 
 class ECard(models.Model):
@@ -120,12 +174,27 @@ class Ticket(models.Model):
     class Meta:
         unique_together = ('competition', 'ticket_number')
 
+class TicketRange(models.Model):
+        RANGE_CHOICES = [
+            ('A-A', 'A-A'), ('A-Z', 'A-Z'),
+            ('100', '100'), ('200', '200'), ('300', '300'),
+            ('400', '400'), ('500', '500'), ('600', '600'),
+            ('700', '700'), ('800', '800'), ('900', '900'), ('1000', '1000'),
+        ]
+        competition = models.OneToOneField(Competition, on_delete=models.CASCADE)
+        range_type = models.CharField(max_length=10, choices=RANGE_CHOICES)
+    
+        def __str__(self):
+            return f"{self.competition.title} - Range {self.range_type}"
+
+
 class InstantWinPrize(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
     prize_title = models.CharField(max_length=255)
     prize_description = models.TextField()
     stock = models.PositiveIntegerField()
     image = models.ImageField(upload_to='instant_wins/', null=True, blank=True)
+
 
 class TicketInstantWin(models.Model):
     ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE)
@@ -152,6 +221,7 @@ class TopAllTimeWinner(models.Model):
     
 class JournalEntry(models.Model):
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
+    log_type = models.CharField(max_length=100)  # e.g., "entry", "draw", "extension", "winner"
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)

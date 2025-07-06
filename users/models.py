@@ -1,4 +1,5 @@
 # Create your models here.
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -27,7 +28,12 @@ class UserProfile(models.Model):
     consent_to_marketing = models.BooleanField(default=False)
     receive_whatsapp = models.BooleanField(default=False)
     receive_email = models.BooleanField(default=True)
+    marketing_consent = models.BooleanField(default=False)
 
+    def save(self, *args, **kwargs):
+        if self.is_affiliate and not self.rc_code:
+            self.rc_code = str(uuid.uuid4()).split('-')[0].upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -69,13 +75,17 @@ class AffiliateCommission(models.Model):
     related_order = models.ForeignKey('Order', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.affiliate.user.username} earned {self.amount} from {self.lead_user.username}"
+        return f"{self.affiliate.user.username} earned {self.amount} from {self.lead.user.username}"
 
 
 class Wallet(models.Model):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+         return f"{self.user_profile.user.username}'s Wallet - Balance: {self.balance}"
+
 
 class WalletTransaction(models.Model):
     TRANSACTION_TYPE_CHOICES = [
@@ -92,9 +102,8 @@ class WalletTransaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     related_order = models.ForeignKey('giftshop.Order', null=True, blank=True, on_delete=models.SET_NULL)
 
-
 class OTPVerification(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='otp_verifications')
     code = models.CharField(max_length=6)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -119,3 +128,13 @@ class PasswordResetRequest(models.Model):
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
+
+
+class ClientActionLog(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    action_type = models.CharField(max_length=100)  
+    details = models.JSONField(default=dict)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.action_type} at {self.timestamp}"

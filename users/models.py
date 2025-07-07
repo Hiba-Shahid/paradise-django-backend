@@ -72,7 +72,7 @@ class AffiliateCommission(models.Model):
     lead = models.ForeignKey(UserProfile, related_name='commission_source', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
-    related_order = models.ForeignKey('Order', on_delete=models.CASCADE)
+    related_order = models.ForeignKey('giftshop.Order', on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.affiliate.user.username} earned {self.amount} from {self.lead.user.username}"
@@ -110,11 +110,6 @@ class OTPVerification(models.Model):
     expires_at = models.DateTimeField()
     purpose = models.CharField(max_length=50, default='registration') 
 
-class NewsletterSubscription(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    subscribed_at = models.DateTimeField(auto_now_add=True)
-    unsubscribed_at = models.DateTimeField(null=True, blank=True)
-
 
 class LoginHistory(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
@@ -130,11 +125,4 @@ class PasswordResetRequest(models.Model):
     expires_at = models.DateTimeField()
 
 
-class ClientActionLog(models.Model):
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    action_type = models.CharField(max_length=100)  
-    details = models.JSONField(default=dict)
-    timestamp = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.user} - {self.action_type} at {self.timestamp}"

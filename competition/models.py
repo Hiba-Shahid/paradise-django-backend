@@ -99,27 +99,6 @@ class CompetitionPrize(models.Model):
     def get_all_time_prize_value(cls):
         return sum(cls.objects.values_list('prize_value', flat=True))
 
-class CompetitionCopyHistory(models.Model):
-    original_competition = models.ForeignKey('Competition', related_name='copy_sources', on_delete=models.CASCADE)
-    new_competition = models.ForeignKey('Competition', related_name='copied_versions', on_delete=models.CASCADE)
-    copied_by = models.ForeignKey('users.UserProfile', on_delete=models.SET_NULL, null=True)
-    inserted_position = models.PositiveIntegerField(null=True, blank=True)  # e.g., after competition #5
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Copied {self.original_competition.title} → {self.new_competition.title}"
-
-class CompetitionEditLog(models.Model):
-    competition = models.ForeignKey('Competition', on_delete=models.CASCADE)
-    edited_by = models.ForeignKey('users.UserProfile', on_delete=models.SET_NULL, null=True)
-    field_changed = models.CharField(max_length=255)
-    old_value = models.TextField(null=True, blank=True)
-    new_value = models.TextField(null=True, blank=True)
-    edited_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Edit on {self.competition.title} - {self.field_changed}"
-
 
 class DiscountCoupon(models.Model):
     code = models.CharField(max_length=50, unique=True)
@@ -208,26 +187,4 @@ class Winner(models.Model):
     prize = models.ForeignKey(Prize, on_delete=models.CASCADE)
     winner_picture = models.ImageField(upload_to='winners/', null=True, blank=True)
     winner_video = models.FileField(upload_to='winners/', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-class TopAllTimeWinner(models.Model):
-    winner = models.OneToOneField(Winner, on_delete=models.CASCADE)
-    display_order = models.PositiveIntegerField(unique=True)  
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        ordering = ['display_order']
-
-    
-class JournalEntry(models.Model):
-    competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
-    log_type = models.CharField(max_length=100)  # e.g., "entry", "draw", "extension", "winner"
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
-
-class LiveDraw(models.Model):
-    competitions = models.ManyToManyField(Competition)
-    video_url = models.URLField()
-    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import UserProfile
+from django.utils.timezone import now
 from competition.models import Competition, Ticket
 
 class ProductCategory(models.Model):
@@ -68,6 +69,8 @@ class Order(models.Model):
     rc_code_used = models.CharField(max_length=20, null=True, blank=True)
     unique_sale_code = models.CharField(max_length=20, unique=True)
 
+    class Meta:
+        ordering = ['-created_at']
     
     def __str__(self):
         return f"Order #{self.unique_sale_code} by {self.user_profile}"
@@ -75,12 +78,22 @@ class Order(models.Model):
 class Sale(models.Model):
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
-    ticket = models.ForeignKey('competitions.Ticket', null=True, blank=True, on_delete=models.SET_NULL)
-    competition = models.ForeignKey('competitions.Competition', on_delete=models.SET_NULL, null=True)
+    ticket = models.ForeignKey(Ticket, null=True, blank=True, on_delete=models.SET_NULL)
+    competition = models.ForeignKey(Competition, null=True, blank=True, on_delete=models.SET_NULL)
     quantity = models.PositiveIntegerField(default=1)
     price_paid = models.DecimalField(max_digits=10, decimal_places=2)
     sale_code = models.CharField(max_length=50, unique=True)  
     created_at = models.DateTimeField(auto_now_add=True)
+
+    
+def save(self, *args, **kwargs):
+    if not self.sale_code:
+        date_part = now().strftime('%y%m%d')
+        base_code = f"{date_part}01A"
+        existing = Sale.objects.filter(sale_code__startswith=base_code).count()
+        next_num = str(existing + 1).zfill(3)
+        self.sale_code = f"{base_code}{next_num}"
+    super().save(*args, **kwargs)
 
     def __str__(self):
         return self.sale_code
@@ -109,39 +122,5 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction {self.gateway_reference} for Order #{self.order.unique_sale_code}"
-
-
-
-class Invoice(models.Model):
-    sale = models.OneToOneField('Sale', on_delete=models.CASCADE, related_name='invoice')
-    order = models.OneToOneField('Order', on_delete=models.CASCADE, related_name='invoice')
-    invoice_number = models.CharField(max_length=20, unique=True)  
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    pdf_file = models.FileField(upload_to='invoices/%Y/%m/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Invoice #{self.invoice_number}"
-
-    def save(self, *args, **kwargs):
-        if not self.invoice_number:
-            self.invoice_number = self.generate_invoice_number()
-        super().save(*args, **kwargs)
-
-    def generate_invoice_number(self):
-        from django.utils.timezone import now
-        year_suffix = now().strftime('%y')  
-        letter = 'A' 
-        last_invoice = Invoice.objects.filter(invoice_number__startswith=year_suffix + letter).order_by('invoice_number').last()
-        if last_invoice:
-            last_number = int(last_invoice.invoice_number[-6:])
-            next_number = str(last_number + 1).zfill(6)
-        else:
-            next_number = '000001'
-        return f"{year_suffix}{letter}{next_number}"
-
 
 

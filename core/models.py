@@ -1,4 +1,5 @@
 from django.db import models
+from competition.models import Competition
 
 # Create your models here.
 class Setting(models.Model):
@@ -72,9 +73,10 @@ class Language(models.Model):
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
 
+
 class HeroBanner(models.Model):
     image = models.ImageField(upload_to='hero_banners/')
-    competition = models.ForeignKey('Competition', on_delete=models.CASCADE)
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE)
     display_order = models.PositiveIntegerField()
     active = models.BooleanField(default=True)
 

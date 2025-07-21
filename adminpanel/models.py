@@ -1,14 +1,8 @@
 from django.db import models
-from users.models import UserProfile
+from apis.models.user_profile import UserProfile
 from django.utils import timezone
 from competition.models import Competition, Winner  # Import correct models
 
-class StaffMember(models.Model):
-    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
-    role = models.CharField(max_length=100)
-    can_delete = models.BooleanField(default=False)
-    can_publish = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
 
 class CompetitionCopyHistory(models.Model):
     original_competition = models.ForeignKey(Competition, related_name='copy_sources', on_delete=models.CASCADE)

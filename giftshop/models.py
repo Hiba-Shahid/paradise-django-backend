@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import UserProfile
+from apis.models.user_profile import UserProfile
 from django.utils.timezone import now
 from competition.models import Competition, Ticket
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Competition, Ticket,  Winner
-from users.models import UserProfile
+from apis.models.user_profile import UserProfile
 
 class CompetitionSerializer(serializers.ModelSerializer):
     class Meta:

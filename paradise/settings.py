@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework',
     'rest_framework_simplejwt',
-    'users',
+    'apis',
     'competition',
     'giftshop',
     'messaging',

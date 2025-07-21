@@ -1,4 +1,4 @@
-from users.models import UserProfile
+from apis.models.user_profile import UserProfile
 from django.db import models
 from datetime import timedelta
 from django.utils import timezone

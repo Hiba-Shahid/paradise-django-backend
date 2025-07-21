@@ -1,9 +1,10 @@
 import uuid
 from django.db import models
-from user_profile import UserProfile
+from apis.models.user_profile import UserProfile
+from abstract.base import BaseModel
 
 
-class AffiliateProfile(models.Model):
+class AffiliateProfile(BaseModel):
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='affiliate')
     rc_code = models.CharField(max_length=20, unique=True, null=True, blank=True)  
     affiliate_joined_on = models.DateTimeField(null=True, blank=True)

@@ -1,7 +1,8 @@
 from django.db import models
 from apis.models.user_profile import UserProfile
 from django.utils.timezone import now
-from competition.models import Competition, Ticket
+from apis.models.competition import Competition
+from apis.models.ticket import Ticket
 
 class ProductCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -31,7 +32,7 @@ class Product(models.Model):
         return self.name
 
     @property
-    def is_digital(self):
+    def is_digital(self): 
         return self.product_type == 'digital'
 
     @property
@@ -40,11 +41,16 @@ class Product(models.Model):
     
 
 class Cart(models.Model):
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('closed', 'Closed'),
+    )
     user_profile = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Cart of {self.user_profile}"
+        return f"Cart ({self.status}) for {self.user_profile}"
 
 
 class CartItem(models.Model):
@@ -52,8 +58,6 @@ class CartItem(models.Model):
     product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL)
     ticket = models.ForeignKey(Ticket, null=True, blank=True, on_delete=models.SET_NULL)
     quantity = models.PositiveIntegerField(default=1)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     
     def __str__(self):
@@ -65,9 +69,8 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=50)
-    competition = models.ForeignKey(Competition, null=True, blank=True, on_delete=models.SET_NULL)
     rc_code_used = models.CharField(max_length=20, null=True, blank=True)
-    unique_sale_code = models.CharField(max_length=20, unique=True)
+    sale_code = models.CharField(max_length=20, unique=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -85,18 +88,18 @@ class Sale(models.Model):
     sale_code = models.CharField(max_length=50, unique=True)  
     created_at = models.DateTimeField(auto_now_add=True)
 
-    
-def save(self, *args, **kwargs):
-    if not self.sale_code:
-        date_part = now().strftime('%y%m%d')
-        base_code = f"{date_part}01A"
-        existing = Sale.objects.filter(sale_code__startswith=base_code).count()
-        next_num = str(existing + 1).zfill(3)
-        self.sale_code = f"{base_code}{next_num}"
-    super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.sale_code:
+            date_part = now().strftime('%y%m%d')
+            base_code = f"{date_part}01A"
+            existing = Sale.objects.filter(sale_code__startswith=base_code).count()
+            next_num = str(existing + 1).zfill(3)
+            self.sale_code = f"{base_code}{next_num}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.sale_code
+
 
 
 class OrderItem(models.Model):

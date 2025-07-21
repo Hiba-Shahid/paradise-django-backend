@@ -1,5 +1,5 @@
 from django.db import models
-from competition.models import Competition
+from apis.models.competition import Competition
 
 # Create your models here.
 class Setting(models.Model):

@@ -1,7 +1,8 @@
 from django.db import models
 from apis.models.user_profile import UserProfile
 from django.utils import timezone
-from competition.models import Competition, Winner  # Import correct models
+from apis.models.competition import Competition
+from apis.models.winner import Winner
 
 
 class CompetitionCopyHistory(models.Model):

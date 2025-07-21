@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from abstract.base import BaseModel
 
 
-class UserProfile(models.Model):
+class UserProfile(BaseModel):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
@@ -14,11 +15,9 @@ class UserProfile(models.Model):
     province = models.CharField(max_length=100, null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
     address = models.TextField(null=True, blank=True) 
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_allow_affiliate_marketing = models.BooleanField(default=False)
     referrar = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='referees')
-
 
 
     def __str__(self):

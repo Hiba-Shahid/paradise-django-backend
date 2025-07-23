@@ -12,6 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
+    def validate_referrar(self, value):
+        if value == "":
+            return None
+        return value
+
     class Meta:
         model = UserProfile
         fields = [

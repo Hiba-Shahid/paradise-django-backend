@@ -9,7 +9,10 @@ class AffiliateProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return AffiliateProfile.objects.filter(user_profile__user=self.request.user)
+    # Prevent querying when user is anonymous or schema generation is triggered
+     if getattr(self, 'swagger_fake_view', False) or self.request.user.is_anonymous:
+        return AffiliateProfile.objects.none()  # Return an empty queryset
+     return AffiliateProfile.objects.filter(user_profile__user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user_profile=self.request.user.profile)

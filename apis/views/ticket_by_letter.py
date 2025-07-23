@@ -1,10 +1,22 @@
-# views/ticket_by_letter.py
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from apis.models.ticket import Ticket
 from apis.serializers.ticket import TicketSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
+letter_param = openapi.Parameter(
+    'letter', openapi.IN_QUERY,
+    description="Starting letter of ticket_number (e.g., A, B, C...)",
+    type=openapi.TYPE_STRING
+)
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[letter_param],
+    responses={200: TicketSerializer(many=True)}
+)
 @api_view(['GET'])
 def tickets_by_letter(request, competition_id):
     letter = request.query_params.get('letter')

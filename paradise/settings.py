@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'drf_yasg',
     'apis.apps.ApisConfig',
     'giftshop',
     'messaging',
@@ -51,6 +52,18 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',  # or your custom permissions
     ],
 }
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': 'Token-based authentication with required prefix "Token" (e.g., "Token 12345abcde")'
+        }
+    },
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

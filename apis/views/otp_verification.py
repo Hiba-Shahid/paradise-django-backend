@@ -10,7 +10,10 @@ class OTPVerificationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return OTPVerification.objects.filter(user_profile__user=self.request.user)
+     if getattr(self, 'swagger_fake_view', False) or self.request.user.is_anonymous:
+         return OTPVerification.objects.none()
+     return OTPVerification.objects.filter(user_profile__user=self.request.user)
+
 
     def perform_create(self, serializer):
         user_profile = self.request.user.profile

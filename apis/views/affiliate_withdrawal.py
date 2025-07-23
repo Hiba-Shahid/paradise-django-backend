@@ -12,7 +12,9 @@ class AffiliateWithdrawalViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return AffiliateWithdrawal.objects.filter(affiliate__user_profile__user=self.request.user)
+     if getattr(self, 'swagger_fake_view', False) or self.request.user.is_anonymous:
+         return AffiliateWithdrawal.objects.none()  
+     return AffiliateWithdrawal.objects.filter(affiliate__user_profile__user=self.request.user)
 
     def perform_create(self, serializer):
         affiliate_profile = self.request.user.profile.affiliate

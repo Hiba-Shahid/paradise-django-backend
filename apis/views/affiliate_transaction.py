@@ -8,4 +8,7 @@ class AffiliateTransactionViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return AffiliateTransaction.objects.filter(referrar__user_profile__user=self.request.user)
+     if getattr(self, 'swagger_fake_view', False) or self.request.user.is_anonymous:
+        return AffiliateTransaction.objects.none()
+     return AffiliateTransaction.objects.filter(affiliate__user_profile__user=self.request.user)
+

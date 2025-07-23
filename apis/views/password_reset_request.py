@@ -8,10 +8,10 @@ import uuid
 
 class PasswordResetRequestViewSet(viewsets.ModelViewSet):
     serializer_class = PasswordResetRequestSerializer
-    permission_classes = [permissions.AllowAny]  # Open for unauthenticated users (reset by email)
+    permission_classes = [permissions.AllowAny]  
 
     def get_queryset(self):
-        return PasswordResetRequest.objects.none()  # Not exposed for list view
+        return PasswordResetRequest.objects.none() 
 
     def create(self, request, *args, **kwargs):
         email = request.data.get('email')

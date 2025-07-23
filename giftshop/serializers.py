@@ -12,7 +12,7 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id', 'user', 'created_at', 'is_active']
+        fields = ['id', 'user', 'created_at']
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
@@ -20,14 +20,14 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ['id', 'cart', 'product', 'quantity', 'total_price']
+        fields = ['id', 'cart', 'product', 'quantity']
 
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='user__username', queryset=UserProfile.objects.all())
 
     class Meta:
         model = Order
-        fields = ['id', 'user', 'total_price', 'status', 'delivery_address', 'shipping_method', 'created_at']
+        fields = ['id', 'user', 'total_amount', 'created_at']
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer()
@@ -35,7 +35,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'product', 'quantity', 'price_per_item', 'total_price']
+        fields = ['id', 'order', 'product', 'price']
 
 class TransactionSerializer(serializers.ModelSerializer):
     order = serializers.SlugRelatedField(slug_field='id', queryset=Order.objects.all(), required=False)  # Optional
@@ -43,5 +43,5 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ['id', 'order', 'competition', 'transaction_id', 'amount', 'payment_method', 'status', 'transaction_type', 'transaction_date']
+        fields = ['id', 'order', 'payment_method', 'status']
 

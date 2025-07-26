@@ -10,13 +10,18 @@ from apis.views.signup import UserSignUpView
 from apis.views.signin import UserSignInView
 from apis.views.competition_category import CompetitionCategoryViewSet
 from apis.views.competition_image import CompetitionImageViewSet
-from apis.views.competition import CompetitionViewSet  #
+from apis.views.competition import CompetitionViewSet  
 from apis.views.ticket import TicketViewSet
 from apis.views.ecard import ECardViewSet
 from apis.views.instant_win_prize import InstantWinPrizeViewSet
 from apis.views.winner import WinnerViewSet
 from apis.views.ticket_by_letter import tickets_by_letter
-
+from apis.views.cart import CartViewSet
+from apis.views.cart_item import CartItemViewSet
+from apis.views.order import OrderViewSet
+from apis.views.order_item import OrderItemViewSet
+from apis.views.product import ProductViewSet
+from apis.views.product_category import ProductCategoryViewSet
 
 router = DefaultRouter()
 # router.register(r'user-profiles', UserProfileViewSet, basename='user-profile')
@@ -32,6 +37,13 @@ router.register(r'tickets', TicketViewSet)
 router.register(r'ecards', ECardViewSet)
 router.register(r'instant-win-prizes', InstantWinPrizeViewSet)
 router.register(r'winners', WinnerViewSet)
+router.register(r'cart', CartViewSet, basename='cart')
+router.register(r'cart-items', CartItemViewSet, basename='cart-items')
+router.register(r'orders', OrderViewSet, basename='orders')
+router.register(r'order-items', OrderItemViewSet, basename='order-items')
+router.register(r'products', ProductViewSet, basename='products')
+router.register(r'categories', ProductCategoryViewSet, basename='categories')
+
 
 urlpatterns = router.urls
 

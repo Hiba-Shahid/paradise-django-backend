@@ -12,7 +12,7 @@ class AffiliateTransaction(BaseModel):
         ('debit', 'Debit'),
     ]
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    related_order = models.ForeignKey('giftshop.Order', null=True, blank=True, on_delete=models.CASCADE)
+    related_order = models.ForeignKey('apis.Order', null=True, blank=True, on_delete=models.CASCADE)
 
     def __str__(self):
          return f"{self.referrar.user.username} | {self.transaction_type.upper()} of {self.value} | Balance: {self.balance_after}"

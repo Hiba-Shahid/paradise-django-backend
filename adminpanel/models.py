@@ -58,7 +58,7 @@ class TopAllTimeWinner(models.Model):
 
 class Invoice(models.Model):
     sale = models.OneToOneField('giftshop.Sale', on_delete=models.CASCADE, related_name='invoice')
-    order = models.OneToOneField('giftshop.Order', on_delete=models.CASCADE, related_name='invoice')
+    order = models.OneToOneField('apis.Order', on_delete=models.CASCADE, related_name='invoice')
     invoice_number = models.CharField(max_length=20, unique=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     pdf_file = models.FileField(upload_to='invoices/%Y/%m/', blank=True, null=True)
